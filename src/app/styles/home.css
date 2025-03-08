@@ -1,0 +1,40 @@
+.bowling-score-tracker {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+.player-selection {
+  margin-bottom: 20px;
+}
+
+.score-table {
+  display: flex;
+  gap: 20px;
+}
+
+.player {
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.frames {
+  display: flex;
+  gap: 10px;
+}
+
+.frame {
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.throws input {
+  width: 40px;
+  margin-right: 5px;
+}
+
+.total {
+  margin-top: 10px;
+  font-size: 1.2em;
+}
