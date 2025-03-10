@@ -24,47 +24,50 @@ export default function UserManagement({ users, setUsers, onStartGame }: UserMan
   };
 
   return (
-    <div className="text-black p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">User Management</h2>
-      <div>
-        <h3 className="text-lg font-semibold mb-2">Add Users</h3>
-        <ul className="space-y-2 mb-4">
+    <div className="text-black p-6 bg-white rounded-lg shadow-md max-w-md mx-auto">
+      <h2 className="text-2xl font-bold mb-6 font-mono">User Profiles</h2>
+
+      <div className="max-h-90 overflow-auto">
+        <ul className="space-y-3 mb-6">
           {users.map((user, index) => (
-            <li key={index} className="flex justify-between items-center bg-gray-100 p-2 rounded">
-              <span>{user}</span>
+            <li key={index} className="flex justify-between items-center bg-gray-100 p-3 rounded-lg shadow-sm">
+              <span className="flex-1 text-gray-700 truncate">{user}</span>
               <button
                 onClick={() => removeUser(index)}
-                className="bg-red-500 text-black px-2 py-1 rounded hover:bg-red-600"
+                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 Remove
               </button>
             </li>
           ))}
         </ul>
-        {users.length < 5 && (
-          <div className="flex space-x-2">
-            <input
-              type="text"
-              placeholder="Enter user name"
-              value={newUser}
-              onChange={(e) => setNewUser(e.target.value)}
-              className="flex-1 p-2 border border-gray-300 rounded"
-            />
-            <button
-              onClick={addUser}
-              className="bg-blue-500 text-black px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Add User
-            </button>
-          </div>
-        )}
       </div>
+
+      {users.length < 5 && (
+        <div className="flex items-center space-x-3">
+          <input
+            name="username"
+            type="text"
+            placeholder="Enter user name"
+            value={newUser}
+            onChange={(e) => setNewUser(e.target.value)}
+            className="flex-1 p-3 border border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button data-testid="add-user-button"
+            onClick={addUser}
+            className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Add User
+          </button>
+        </div>
+      )}
+
       <button
-        onClick={onStartGame} // Call the onStartGame callback
-        className="w-full bg-green-500 text-black px-4 py-2 rounded hover:bg-green-600 mt-4"
+        onClick={onStartGame}
+        className="w-full bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 mt-6"
       >
         Start Game
       </button>
     </div>
-  );
+  )
 }
