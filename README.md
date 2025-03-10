@@ -85,6 +85,7 @@ npm test
 
 
 #### 6. For end-to-end testing (user simulation) with **Cypress**
+- Make sure `npm run dev` is already run in different terminal
 - Install Cypress (If Not Installed)
 ```
 npm install --save-dev cypress
