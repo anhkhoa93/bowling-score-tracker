@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+yarn-error.log
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+*.md
+.next
+.swc
+.vscode
+coverage
+package-lock.json
+README.md

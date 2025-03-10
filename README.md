@@ -1,36 +1,172 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bowling Score Tracker Application
+### Overview
+This is a **Bowling Score Tracker** application built with **NextJS**, **TypeScript**, and **TailwindCSS**. It tracks the scores of multiple players across 10 frames, calculates the total score, and highlights the winner.
 
-## Getting Started
+The requirements is at `./EN-Bowling Score Tracker.pdf`
 
-First, run the development server:
+For detail rule of Bowling game, please go to: https://youtu.be/E2d8PizMe-8?si=2xkGsgne6ayL5ay6
+
+### Features
+- Main player can enter name and the names of up to 4 other players so that we can start a game
+- Player enter scores for each frame and each other player so that total score can be calculated
+- Calculate total score for each player automatically based on standard bowling rules
+- See summary of scores for all players after each frame so that I can track the progress of the game
+- See the final scores and the winner at the end of the game
+
+![image info](./resource/app_screen_1.png)
+![image info](./resource/app_screen_2.png)
+![image info](./resource/app_screen_3.png)
+
+### Detail tech stack
+- **NextJS**, **TypeScript** and **TailwindCSS**: Frontend Develop
+- **Jest** (ts-jest with swc): Unit Testing
+- **Cypress**: E2E Testing (User Simulation)
+- **Docker**: For application bundle and deployment
+- **AWS ECS**: Production deployment for scaling, granular control of the application and security.
+- **Github Actions**: CICD for faster development process.
+
+---
+
+## Table of Contents
+1. [Prerequisites](#prerequisites)
+2. [Setup](#setup)
+3. [Folder Structure](#folderstructure)
+
+
+---
+
+## Prerequisites
+
+Before setting up the project locally, ensure you have the following installed:
+
+- **Node.js** (>=18.18)
+
+If you don’t have Node.js and npm installed, you can download and install them from [Node.js](https://nodejs.org/).
+
+---
+
+## Setup
+
+Follow these steps to get the application running locally:
+
+#### 1. Clone the Repository
+First, clone the repository to your local machine:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/anhkhoa93/bowling-score-tracker.git
+```
+#### 2. Navigate to the project directory
+```
+cd bowling-score-tracker
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#### 3. Install Dependencies
+```
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+#### 4. Run the application
+```
+npm run dev
+```
+Access the application at:
+```
+http://localhost:3000/
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### 5. For unit testing
+- Unit Testing using **Jest** with TypeScript:
+```
+npm test
+```
+![image info](./resource/unit_test_coverage.png)
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+#### 6. For end-to-end testing (user simulation) with **Cypress**
+- Install Cypress (If Not Installed)
+```
+npm install --save-dev cypress
+```
+- Open Cypress Test Runner > E2E Testing
+```
+npx cypress open
+```
+![image info](./resource/cypress_open_1.png)
+![image info](./resource/cypress_open_2.png)
+- Run Cypress Tests in Headless Mode
+```
+npx cypress run
+```
+![image info](./resource/cypress_headless_1.png)
+![image info](./resource/cypress_headless_2.png)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## FolderStructure
+```
+bowling-score-tracker/
+├── src/app                         # Source code for the application
+│   ├── components/                 # Reusable components (e.g., ScoreTracker, UserManagement)
+│   │   ├── ScoreTracker.tsx        # ScoreTracker component
+│   │   ├── UserManagement.tsx      # User management component
+│   ├── __tests__/                  # Jest unit tests
+│   │   ├──── *.test.tsx            # Unit test for the application
+│   ├── styles/                     # styles (e.g., Tailwind, global CSS)
+│   └── page.tsx                    # Main app component (if not using Next.js pages)
+│   ├── e2e/                        # Cypress end-to-end tests
+│   │   ├── bowlingScore.cy.js      # Cypress test for adding players and starting the game, run the game to the end
+├── package.json                    # npm dependencies and scripts
+├── tsconfig.json                   # TypeScript configuration
+├── tailwind.config.js              # Tailwind CSS configuration
+├── jest.config.js                  # Jest configuration for unit tests
+└── cypress.json                    # Cypress configuration
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Production Deployment
+#### Overview
+The idea of deployment is to gain full control of the services and we can control scaling, security aspect of the production application
 
-## Deploy on Vercel
+```
+**NOTE**: Since the time is limited so in this scope we handling scalling and part of security only (Environment setup, AWS IAM, AWS ECS, AWS ECR). 
+```
+Additional step to do in the future:
+- HTTPS: Setup an ALB with the CA and route traffic to the target (ECS cluster task)
+- Full CICD workflow, since the deployment already setup, we can easily integrate with Github Workflow so we can do a full CICD
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 1. Run Docker to build the image
+```
+docker build --build-arg NODE_ENV='production' -t bowling-score-tracker . --no-cache
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 2. Create AWS User account that can execute ECS and ECR, then push image to ECR
+- Create an IAM User that have permission AmazonEC2ContainerRegistryPowerUser
+
+- Create an ECR Repository
+```
+aws ecr create-repository --repository-name <your-repo-name>
+```
+- Authenticate Docker Client
+```
+$ECR_LOGIN = aws ecr get-login-password --region <your-region>   
+aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <your-account-id>.dkr.ecr.<your-region>.amazonaws.com
+```
+
+- Tag the image
+```
+docker tag <your-image-name>:latest <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/<your-repo-name>:<your-image-tag>
+```
+- Push the image to ECR
+```
+docker push <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/<your-repo-name>:<your-image-tag>
+```
+![image info](./resource/ecr.png)
+
+### 3. Create ECS with task definition (run from the ECR's image)
+- Full detail at: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-service-console-v2.html
+![image info](./resource/ecs_fargate.png)
+
+### 4. Verify application running
+- Since the IP might change, need to request per deployment
+Future plan is register a domain name, the ALB need to be deloyed and link with DNS and point to the ECS cluster. Then we can use domain name to access. 
+```
+http://3.237.51.27:3000/
+```
+![image info](./resource/prod.png)
