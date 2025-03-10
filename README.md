@@ -43,6 +43,8 @@ Before setting up the project locally, ensure you have the following installed:
 
 If you don’t have Node.js and npm installed, you can download and install them from [Node.js](https://nodejs.org/).
 
+**NOTE**: The developer using **Windows 11** to develop this app. If there is MacOS or Linux user setup and stuck, please contact the developer for help. 
+
 ---
 
 ## Setup
@@ -113,6 +115,8 @@ bowling-score-tracker/
 │   └── page.tsx                    # Main app component (if not using Next.js pages)
 │   ├── e2e/                        # Cypress end-to-end tests
 │   │   ├── bowlingScore.cy.js      # Cypress test for adding players and starting the game, run the game to the end
+├── Dockerfile                      # Dockerize the application
+├── docker-compose.yml              # Docker compose to run the component in production mode
 ├── package.json                    # npm dependencies and scripts
 ├── tsconfig.json                   # TypeScript configuration
 ├── tailwind.config.js              # Tailwind CSS configuration
@@ -127,9 +131,6 @@ The idea of deployment is to gain full control of the services and we can contro
 ```
 **NOTE**: Since the time is limited so in this scope we handling scalling and part of security only (Environment setup, AWS IAM, AWS ECS, AWS ECR). 
 ```
-Additional step to do in the future:
-- HTTPS: Setup an ALB with the CA and route traffic to the target (ECS cluster task)
-- Full CICD workflow, since the deployment already setup, we can easily integrate with Github Workflow so we can do a full CICD
 
 ### 1. Run Docker to build the image
 ```
@@ -159,14 +160,25 @@ docker push <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/<your-repo-nam
 ```
 ![image info](./resource/ecr.png)
 
-### 3. Create ECS with task definition (run from the ECR's image)
+### 3. Create ECS with task definition (run from the ECR's image) so we can scale application base on production needs
 - Full detail at: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-service-console-v2.html
 ![image info](./resource/ecs_fargate.png)
 
 ### 4. Verify application running
 - Since the IP might change, need to request per deployment
-Future plan is register a domain name, the ALB need to be deloyed and link with DNS and point to the ECS cluster. Then we can use domain name to access. 
+
+- Future plan is register a domain name, the ALB need to be deloyed and link with DNS and point to the ECS cluster. Then we can use domain name to access. 
 ```
 http://3.237.51.27:3000/
 ```
 ![image info](./resource/prod.png)
+
+
+### FUTURE DEVELOPMENT
+- Register a custom domain
+- Create Certificate (CA) for HTTPS, link the Certificate to ALB with the domain
+- CICD with github action (each merge from develop to master will trigger deployment of ECS), possible run with cannary deployment approach
+- Application should store the scores securely. So the server components should write the data into a database (redis/postgresql)
+- If the player input the point already, they cannot make change to the score array. So there is 2 approachs:
+  - Store each score using sever component, and check the server record each time new score is set
+  - Client side render only, but hash the last state of score array, and add new score, then rehashing the structure to make sure each change is immutable (blockchain approach)
