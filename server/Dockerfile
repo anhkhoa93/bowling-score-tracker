@@ -7,6 +7,7 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm install
+RUN npm install dotenv pg @types/pg
 
 # Copy source code
 COPY . .
