@@ -1,15 +1,19 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
+import Frame from './Frame';
 
 interface ScoreTrackerProps {
   users: string[];
+  onResetGame?: () => void;
+  onScoreSubmit?: (userIndex: number, frameIndex: number, throwIndex: number, score: number, scores: number[][][]) => boolean;
 }
 
-// Update all value with 10 to use MAX_POINTS
+// Constants
 const MAX_POINTS = 10;
 const MAX_FRAME = 10;
 
+// Extract score calculation to a separate utility function
 export function calculateTotal(userIndex: number, scores: number[][][]) {
   let total = 0;
 
@@ -37,85 +41,217 @@ export function calculateTotal(userIndex: number, scores: number[][][]) {
   }
 
   return total;
-};
+}
 
-export default function ScoreTracker({ users }: ScoreTrackerProps) {
+// Winner announcement component
+const WinnerAnnouncement = memo(({ winner, resetGame }: { winner: string | null, resetGame: () => void }) => {
+  if (!winner) return null;
+  
+  return (
+    <div className="fixed inset-0 flex justify-center items-center z-50" data-testid="winner-announcement" style={{ pointerEvents: 'none' }}>
+      <div className="bg-white text-black p-6 rounded-lg shadow-lg text-center max-w-md w-full" style={{ pointerEvents: 'auto' }}>
+        <h2 className="text-2xl font-bold">Congratulations!</h2>
+        <p className="text-lg mt-2">Winner: <span className="font-bold text-green-600">{winner}</span></p>
+        <button 
+          onClick={resetGame} 
+          className="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+          data-testid="restart-game-button"
+          style={{ position: 'relative', zIndex: 60 }}
+        >
+          Restart Game
+        </button>
+      </div>
+    </div>
+  );
+});
+WinnerAnnouncement.displayName = 'WinnerAnnouncement';
+
+// Score input component
+const ScoreInput = memo(({ 
+  currentUser, 
+  currentFrame, 
+  currentThrow, 
+  scores, 
+  customScore, 
+  setCustomScore, 
+  handleScoreSubmit, 
+  generateRandomScore, 
+  users 
+}: { 
+  currentUser: number;
+  currentFrame: number;
+  currentThrow: number;
+  scores: number[][][];
+  customScore: string;
+  setCustomScore: (score: string) => void;
+  handleScoreSubmit: (score: number) => void;
+  generateRandomScore: (remainingPins: number) => number;
+  users: string[];
+}) => {
+  return (
+    <div className="mb-6">
+      <h3 className="text-lg font-semibold mb-2 text-black">Score Input</h3>
+      <div className="space-y-4">
+        <div>
+          <p className="text-sm font-medium text-black">
+            Current Frame: <span className="font-bold">{currentFrame + 1}</span>
+          </p>
+          <p className="text-sm font-medium text-black">
+            Current User: <span className="font-bold">{users[currentUser]}</span>
+          </p>
+          <p className="text-sm font-medium text-black">
+            Current Throw: <span className="font-bold">{currentThrow + 1}</span>
+          </p>
+        </div>
+        <div className="flex space-x-2">
+          {Array.from({ length: MAX_POINTS }, (_, i) => {
+            const maxScoreFrame = currentFrame === 9 ? 2 * MAX_POINTS : MAX_POINTS;
+            const remainingPins = currentThrow === 0 ? MAX_POINTS : maxScoreFrame - scores[currentUser][currentFrame][0];
+            const maxScore = Math.min(remainingPins, MAX_POINTS);
+            
+            return (
+              <button
+                key={i}
+                onClick={() => handleScoreSubmit(i + 1)}
+                disabled={i + 1 > maxScore}
+                className={`flex-1 bg-blue-500 text-black px-4 py-2 rounded hover:bg-blue-600 transition-colors ${
+                  i + 1 > maxScore ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                data-testid={`score-button-${i + 1}`}
+              >
+                {i + 1}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex space-x-2">
+          <input
+            type="number"
+            min="0"
+            max="10"
+            value={customScore}
+            onChange={(e) => setCustomScore(e.target.value)}
+            className="flex-1 p-2 border border-gray-400 rounded text-black"
+            name="input-score"
+            data-testid="input-score"
+          />
+          <button
+            onClick={() => {
+              const score = parseInt(customScore, 10);
+              if (score >= 1 && score <= MAX_POINTS) {
+                handleScoreSubmit(score);
+                setCustomScore(generateRandomScore(MAX_POINTS).toString());
+              }
+            }}
+            className="bg-green-500 text-black px-4 py-2 rounded hover:bg-green-600 transition-colors"
+            data-testid="submit-button"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+ScoreInput.displayName = 'ScoreInput';
+
+// Scoreboard component
+const Scoreboard = memo(({ 
+  users, 
+  scores, 
+  currentUser, 
+  currentFrame 
+}: { 
+  users: string[]; 
+  scores: number[][][]; 
+  currentUser: number; 
+  currentFrame: number; 
+}) => {
+  return (
+    <div className="overflow-auto max-w-full">
+      <h3 className="text-lg font-semibold mb-2 text-black">Scoreboard</h3>
+      <table className="w-full border-collapse p-2 border border-gray-400 text-black">
+        <thead>
+          <tr className="bg-gray-100 border border-gray-400">
+            <th className="p-2 border border-gray-400 bg-gray-300">Player</th>
+            {Array.from({ length: MAX_POINTS }, (_, i) => (
+              <th key={i} className={`p-3 text-black whitespace-nowrap border border-gray-400 bg-gray-300 ${i === currentFrame ? 'bg-yellow-300' : ''}`}>
+                Frame {i + 1}
+              </th>
+            ))}
+            <th className="p-2">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user, userIndex) => (
+            <tr key={userIndex}>
+              <td className={`p-2 max-w-[10ch] truncate font-bold border border-gray-400 ${userIndex === currentUser ? 'bg-yellow-300 text-black' : ''}`}>
+                {user}
+              </td>
+              {scores[userIndex].map((frame, frameIndex) => (
+                <td key={frameIndex} className="p-0 border border-gray-400">
+                  <Frame 
+                    frame={frame} 
+                    frameIndex={frameIndex} 
+                    isCurrentFrame={userIndex === currentUser && frameIndex === currentFrame} 
+                  />
+                </td>
+              ))}
+              <td className="p-3 font-bold border border-gray-400">{calculateTotal(userIndex, scores)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+});
+Scoreboard.displayName = 'Scoreboard';
+
+const ScoreTracker = memo(function ScoreTracker({ users, onResetGame, onScoreSubmit }: ScoreTrackerProps) {
   // Initialize scores based on users
-  const initializeScores = () => {
+  const initializeScores = useCallback(() => {
     return Array.from({ length: users.length }, () =>
       Array.from({ length: MAX_POINTS }, () => [0, 0, 0]) // Third value for 10th frame bonus
     );
-  };
+  }, [users.length]);
 
   const [scores, setScores] = useState<number[][][]>(initializeScores());
-
-  // Sync scores with users whenever users change
-  useEffect(() => {
-    setScores(initializeScores());
-  }, [users]);
-
   const [currentFrame, setCurrentFrame] = useState(0); // Track the current frame (0-9)
   const [currentUser, setCurrentUser] = useState(0); // Track the current user (0 to users.length - 1)
   const [currentThrow, setCurrentThrow] = useState(0); // Track the current throw (0 or 1)
   const [customScore, setCustomScore] = useState<string>(''); // Track custom score input
   const [winner, setWinner] = useState<string | null>(null);
+  
   // Generate a random score between 1 and the remaining pins
-  const generateRandomScore = (remainingPins: number) => {
+  const generateRandomScore = useCallback((remainingPins: number) => {
     return Math.floor(Math.random() * remainingPins) + 1;
-  };
-  const resetGame = () => {
-    window.location.reload();
-  };
+  }, []);
+  
+  // Reset the game
+  const resetGame = useCallback(() => {
+    setScores(initializeScores());
+    setCurrentFrame(0);
+    setCurrentUser(0);
+    setCurrentThrow(0);
+    setWinner(null);
+    if (onResetGame) {
+      onResetGame();
+    }
+  }, [onResetGame, initializeScores]);
+
+  // Sync scores with users whenever users change
+  useEffect(() => {
+    setScores(initializeScores());
+  }, [users, initializeScores]);
 
   // Set a random score as the default value for the custom input
   useEffect(() => {
     const frame = scores[currentUser][currentFrame];
     const remainingPins = currentThrow === 0 ? MAX_POINTS : MAX_POINTS - frame[0];
     setCustomScore(generateRandomScore(remainingPins).toString());
-  }, [currentUser, currentFrame, currentThrow, scores]);
+  }, [currentUser, currentFrame, currentThrow, scores, generateRandomScore]);
 
-
-  const handleScoreSubmit = (score: number) => {
-    const newScores = [...scores];
-    const frame = newScores[currentUser][currentFrame];
-
-    if (currentFrame < 9) {
-      if (currentThrow === 0) {
-        frame[0] = score;
-        if (score === MAX_POINTS) {
-          moveToNextUser();
-        } else {
-          setCurrentThrow(1);
-        }
-      } else {
-        if (frame[0] + score > MAX_POINTS) return alert('Invalid Score!');
-        frame[1] = score;
-        setCurrentThrow(0);
-        moveToNextUser();
-      }
-    } else {
-      if (currentThrow === 0) {
-        frame[0] = score;
-        setCurrentThrow(1);
-      } else if (currentThrow === 1) {
-        frame[1] = score;
-        if (frame[0] === MAX_POINTS || frame[0] + frame[1] === MAX_POINTS) {
-          setCurrentThrow(2);
-        } else {
-          setCurrentThrow(0);
-          moveToNextUser();
-        }
-      } else {
-        frame[2] = score;
-        setCurrentThrow(0);
-        moveToNextUser();
-      }
-    }
-
-    setScores(newScores);
-  };
-
-  const moveToNextUser = () => {
+  const moveToNextUser = useCallback(() => {
     if (currentUser < users.length - 1) {
       setCurrentUser(currentUser + 1);
     } else {
@@ -123,185 +259,106 @@ export default function ScoreTracker({ users }: ScoreTrackerProps) {
       if (currentFrame < 9) {
         setCurrentFrame(currentFrame + 1);
       } else {
-        const scoresList = users.map((_, userIndex) => calculateTotal(userIndex, scores)); // Calculate scores for all players
-        const maxScore = Math.max(...scoresList); // Find the maximum score
+        const scoresList = users.map((_, userIndex) => calculateTotal(userIndex, scores));
+        const maxScore = Math.max(...scoresList);
 
         // Find all players who have the maximum score (in case of a tie)
         const winnerIndices = scoresList
-          .map((score, index) => (score === maxScore ? index : -1))  // Find indices of all players with the max score
-          .filter(index => index !== -1);  // Filter out invalid indices
+          .map((score, index) => (score === maxScore ? index : -1))
+          .filter(index => index !== -1);
 
         // Return the winners based on the indices
         const winners = winnerIndices.map(index => users[index]);
-
-        setWinner(winners.toString()); // Set the winners (can be a list of one or more players)
+        setWinner(winners.join(', '));
       }
     }
-  };
+  }, [currentUser, currentFrame, scores, users]);
 
-
-  // Get the display value for a frame
-  const getFrameDisplay = (frame: number[], frameIndex: number): string[] => {
-
-    const isStrike = (pins: number) => pins === MAX_POINTS;
-    const isSpare = (first: number, second: number) => first + second === MAX_POINTS && first !== MAX_POINTS;
-
-    const display = [];
-    // First throw
-    if (isStrike(frame[0])) {
-      display.push('X'); // Strike
-      if (frameIndex < 9) {
-        // Next throw is no need to display
-        display.push('-');
-        return display;
-      }
-    } else {
-      display.push(frame[0].toString());
+  const handleScoreSubmit = useCallback((score: number) => {
+    if (onScoreSubmit && !onScoreSubmit(currentUser, currentFrame, currentThrow, score, scores)) {
+      return;
     }
 
-    // Second throw
-    if (isStrike(frame[1])) {
-      display.push('X'); // Strike (only in 10th frame)
-    } else if (isSpare(frame[0], frame[1])) {
-      display.push('/'); // Spare
-    } else {
-      display.push(frame[1].toString());
-    }
+    setScores(prevScores => {
+      const newScores = JSON.parse(JSON.stringify(prevScores));
+      const frame = newScores[currentUser][currentFrame];
 
-    if (frameIndex < 9) {
-      // Frames 1-9
-      return display;
-
-    } else {
-      // Frame 10
-
-
-      // Third throw (only in 10th frame)
-      if (frame.length === 3) {
-        if (isStrike(frame[2])) {
-          display.push('X');
+      if (currentFrame < 9) {
+        if (currentThrow === 0) {
+          frame[0] = score;
+          if (score === MAX_POINTS) {
+            // Will move to next user after this function returns
+            setCurrentThrow(0);
+          } else {
+            setCurrentThrow(1);
+            return newScores;
+          }
         } else {
-          display.push(frame[2].toString());
+          if (frame[0] + score > MAX_POINTS) {
+            alert('Invalid Score!');
+            return prevScores;
+          }
+          frame[1] = score;
+          setCurrentThrow(0);
+        }
+      } else {
+        if (currentThrow === 0) {
+          frame[0] = score;
+          setCurrentThrow(1);
+          return newScores;
+        } else if (currentThrow === 1) {
+          frame[1] = score;
+          if (frame[0] === MAX_POINTS || frame[0] + frame[1] === MAX_POINTS) {
+            setCurrentThrow(2);
+            return newScores;
+          } else {
+            setCurrentThrow(0);
+          }
+        } else {
+          frame[2] = score;
+          setCurrentThrow(0);
         }
       }
 
-      return display;
+      return newScores;
+    });
+
+    // If we're moving to the next user, do it after state updates
+    if (
+      (currentThrow === 0 && score === MAX_POINTS) || // Strike
+      (currentThrow === 1) || // Second throw
+      (currentFrame === 9 && currentThrow === 2) // 10th frame third throw
+    ) {
+      setTimeout(moveToNextUser, 0);
     }
-  };
+  }, [currentUser, currentFrame, currentThrow, moveToNextUser, onScoreSubmit, scores]);
 
   return (
-    <div className="p-6 bg-gray-100 text-white rounded-lg shadow-md w-full">
+    <div className="p-6 bg-gray-100 rounded-lg shadow-md w-full">
       <h2 className="text-2xl font-bold mb-4 text-black">Score Tracker</h2>
 
-      {/* Winner Section */}
-      {winner && (
-        <div className="fixed inset-0 flex justify-center items-center">
-          <div className="bg-white text-black p-6 rounded-lg shadow-lg text-center">
-            <h2 className="text-2xl font-bold">Congratulations!</h2>
-            <p className="text-lg mt-2">Winner: <span className="font-bold text-green-600">{winner}</span></p>
-            <button onClick={resetGame} className="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Restart Game</button>
-          </div>
-        </div>
-      )}
+      <WinnerAnnouncement winner={winner} resetGame={resetGame} />
 
-      {/* Score Input Section */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2 text-black">Score Input</h3>
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm font-medium text-black">
-              Current Frame: <span className="font-bold">{currentFrame + 1}</span>
-            </p>
-            <p className="text-sm font-medium text-black">
-              Current User: <span className="font-bold">{users[currentUser]}</span>
-            </p>
-            <p className="text-sm font-medium text-black">
-              Current Throw: <span className="font-bold">{currentThrow + 1}</span>
-            </p>
-          </div>
-          <div className="flex space-x-2">
-            {Array.from({ length: MAX_POINTS }, (_, i) => {
-              const maxScoreFrame = currentFrame === 9 ? 2 * MAX_POINTS : MAX_POINTS;
+      <ScoreInput
+        currentUser={currentUser}
+        currentFrame={currentFrame}
+        currentThrow={currentThrow}
+        scores={scores}
+        customScore={customScore}
+        setCustomScore={setCustomScore}
+        handleScoreSubmit={handleScoreSubmit}
+        generateRandomScore={generateRandomScore}
+        users={users}
+      />
 
-              const remainingPins = currentThrow === 0 ? MAX_POINTS : maxScoreFrame - scores[currentUser][currentFrame][0];
-
-              const maxScore = Math.min(remainingPins, MAX_POINTS);
-              return (
-                <button
-                  key={i}
-                  onClick={() => handleScoreSubmit(i + 1)}
-                  disabled={i + 1 > maxScore}
-                  className={`flex-1 bg-blue-500 text-black px-4 py-2 rounded hover:bg-blue-600 ${i + 1 > maxScore ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                >
-                  {i + 1}
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex space-x-2">
-            <input
-              name="input-score"
-              data-testid="input-score"
-              type="number"
-              min="1"
-              max="10"
-              placeholder=""
-              value={customScore}
-              onChange={(e) => setCustomScore(e.target.value)}
-              className="flex-1 p-2 border border-gray-400 rounded text-black"
-            />
-            <button
-              onClick={() => {
-                const score = parseInt(customScore, MAX_POINTS);
-                // score = get score from input
-                if (score >= 1 && score <= MAX_POINTS) {
-                  handleScoreSubmit(score);
-                  setCustomScore(generateRandomScore(MAX_POINTS).toString()); // Reset to a new random score
-                }
-              }}
-              className="bg-green-500 text-black px-4 py-2 rounded hover:bg-green-600"
-            >
-              Submit
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Scoreboard Section */}
-      <div className="overflow-auto max-w-full">
-        <h3 className="text-lg font-semibold mb-2 text-black">Scoreboard</h3>
-        <table className="w-full border-collapse p-2 border border-gray-400 text-black">
-          <thead>
-            <tr className="bg-gray-100 border border-gray-400">
-              <th className="p-2 border border-gray-400 bg-gray-300">Player</th>
-              {Array.from({ length: MAX_POINTS }, (_, i) => (
-                <th key={i} className={`p-3 text-black whitespace-nowrap border border-gray-400 bg-gray-300 ${i === currentFrame ? 'bg-yellow-300' : ''}`}>
-                  Frame {i + 1}
-                </th>
-              ))}
-              <th className="p-2">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user, userIndex) => (
-              <tr key={userIndex}>
-                <td className={`p-2 max-w-[10ch] truncate font-bold border border-gray-400 ${userIndex === currentUser ? 'bg-yellow-300 text-black' : ''}`}>{user}</td>
-                {scores[userIndex].map((frame, frameIndex) => (
-                  <td key={frameIndex} className={`p-3 border border-gray-400 ${userIndex === currentUser && frameIndex === currentFrame ? 'bg-yellow-200 text-black' : ''}`}>
-                    <div className="flex justify-between text-black">
-                      {getFrameDisplay(frame, frameIndex).map((value, index) => (
-                        <span key={index}>{value}</span>
-                      ))}
-                    </div>
-                  </td>
-                ))}
-                <td className="p-3 font-bold border border-gray-400">{calculateTotal(userIndex, scores)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Scoreboard
+        users={users}
+        scores={scores}
+        currentUser={currentUser}
+        currentFrame={currentFrame}
+      />
     </div>
   );
-}
+});
+
+export default ScoreTracker;
