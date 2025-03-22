@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Home from '../../page';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Define the types for the props
 interface UserManagementProps {

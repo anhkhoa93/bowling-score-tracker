@@ -6,6 +6,7 @@ import Frame from './Frame';
 interface ScoreTrackerProps {
   users: string[];
   onResetGame?: () => void;
+  onScoreSubmit?: (userIndex: number, frameIndex: number, throwIndex: number, score: number, scores: number[][][]) => boolean;
 }
 
 // Constants
@@ -63,6 +64,7 @@ const WinnerAnnouncement = memo(({ winner, resetGame }: { winner: string | null,
     </div>
   );
 });
+WinnerAnnouncement.displayName = 'WinnerAnnouncement';
 
 // Score input component
 const ScoreInput = memo(({ 
@@ -151,6 +153,7 @@ const ScoreInput = memo(({
     </div>
   );
 });
+ScoreInput.displayName = 'ScoreInput';
 
 // Scoreboard component
 const Scoreboard = memo(({ 
@@ -202,8 +205,9 @@ const Scoreboard = memo(({
     </div>
   );
 });
+Scoreboard.displayName = 'Scoreboard';
 
-const ScoreTracker = memo(function ScoreTracker({ users, onResetGame }: ScoreTrackerProps) {
+const ScoreTracker = memo(function ScoreTracker({ users, onResetGame, onScoreSubmit }: ScoreTrackerProps) {
   // Initialize scores based on users
   const initializeScores = useCallback(() => {
     return Array.from({ length: users.length }, () =>
@@ -233,7 +237,7 @@ const ScoreTracker = memo(function ScoreTracker({ users, onResetGame }: ScoreTra
     if (onResetGame) {
       onResetGame();
     }
-  }, [onResetGame]);
+  }, [onResetGame, initializeScores]);
 
   // Sync scores with users whenever users change
   useEffect(() => {
@@ -268,9 +272,13 @@ const ScoreTracker = memo(function ScoreTracker({ users, onResetGame }: ScoreTra
         setWinner(winners.join(', '));
       }
     }
-  }, [currentUser, users.length, currentFrame, scores]);
+  }, [currentUser, currentFrame, scores, users]);
 
   const handleScoreSubmit = useCallback((score: number) => {
+    if (onScoreSubmit && !onScoreSubmit(currentUser, currentFrame, currentThrow, score, scores)) {
+      return;
+    }
+
     setScores(prevScores => {
       const newScores = JSON.parse(JSON.stringify(prevScores));
       const frame = newScores[currentUser][currentFrame];
@@ -323,7 +331,7 @@ const ScoreTracker = memo(function ScoreTracker({ users, onResetGame }: ScoreTra
     ) {
       setTimeout(moveToNextUser, 0);
     }
-  }, [currentUser, currentFrame, currentThrow, moveToNextUser]);
+  }, [currentUser, currentFrame, currentThrow, moveToNextUser, onScoreSubmit, scores]);
 
   return (
     <div className="p-6 bg-gray-100 rounded-lg shadow-md w-full">

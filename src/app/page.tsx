@@ -3,15 +3,11 @@
 import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import ErrorDialog from './components/ErrorDialog';
+import ServerSyncScoreTracker from './components/ServerSyncScoreTracker';
 
 // Dynamically import components for better performance
 const UserManagement = dynamic(() => import('./components/UserManagement'), {
   loading: () => <div className="flex items-center justify-center p-4">Loading user management...</div>,
-  ssr: false
-});
-
-const ScoreTracker = dynamic(() => import('./components/ScoreTracker'), {
-  loading: () => <div className="flex items-center justify-center p-4">Loading score tracker...</div>,
   ssr: false
 });
 
@@ -55,7 +51,7 @@ export default function Home() {
               setError={setError}
             />
           ) : (
-            <ScoreTracker
+            <ServerSyncScoreTracker
               users={users}
               onResetGame={handleResetGame}
             />

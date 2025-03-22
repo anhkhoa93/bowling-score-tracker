@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Home from '../../page';
+import { ComponentType } from 'react';
 
 // Define the types for the props
 interface UserManagementProps {
@@ -9,21 +10,22 @@ interface UserManagementProps {
   onStartGame: () => void;
 }
 
-interface ScoreTrackerProps {
-  users: string[];
-  onResetGame?: () => void;
+// Define module type
+interface ModuleWithDefault {
+  default: ComponentType<unknown>;
+  [key: string]: unknown;
 }
 
 // Mock dynamic imports
 jest.mock('next/dynamic', () => ({
   __esModule: true,
-  default: (callback: () => Promise<any>) => {
-    let Component: any;
-    callback().then((module: any) => {
-      Component = module.default || module;
+  default: (callback: () => Promise<ModuleWithDefault>) => {
+    let Component: ComponentType<unknown> | null = null;
+    callback().then((module: ModuleWithDefault) => {
+      Component = module.default || module as unknown as ComponentType<unknown>;
     });
     
-    const DynamicComponent = (props: any) => {
+    const DynamicComponent = (props: Record<string, unknown>) => {
       return Component ? <Component {...props} /> : null;
     };
     DynamicComponent.preload = jest.fn();
@@ -69,7 +71,7 @@ jest.mock('../UserManagement', () => {
 
 // Mock ScoreTracker component
 jest.mock('../ScoreTracker', () => {
-  const MockScoreTracker = (props: ScoreTrackerProps) => (
+  const MockScoreTracker = () => (
     <div data-testid="score-tracker">
       <input data-testid="input-score" type="number" />
     </div>

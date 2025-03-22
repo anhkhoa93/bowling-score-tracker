@@ -9,12 +9,7 @@ const path_1 = __importDefault(require("path"));
 // Load environment variables from .env file
 const envPath = path_1.default.resolve(process.cwd(), '.env');
 dotenv_1.default.config({ path: envPath });
-// Log connection details for debugging (remove in production)
-console.log('Database connection details:');
-console.log(`Host: ${process.env.DB_HOST || 'localhost'}`);
-console.log(`Port: ${process.env.DB_PORT || '5432'}`);
-console.log(`Database: ${process.env.DB_NAME || 'bowling_scores'}`);
-console.log(`User: ${process.env.DB_USER || 'postgres'}`);
+
 // Create a new PostgreSQL connection pool
 const pool = new pg_1.Pool({
     user: process.env.DB_USER || 'postgres',

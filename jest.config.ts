@@ -19,6 +19,12 @@ const config: Config = {
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': ['@swc/jest', {}],
   },
+  // Ignore the server tests when running from the root directory
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/.next/',
+    '<rootDir>/server/'
+  ],
 }
  
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

@@ -1,6 +1,7 @@
 // API service for interacting with the Fastify backend
 
 const API_BASE_URL = 'http://localhost:3001/api';
+export const SERVER_ERROR_MESSAGE = 'Cannot connect to server, game is running without saving';
 
 // Player API methods
 export const playerApi = {
@@ -13,7 +14,7 @@ export const playerApi = {
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch players: ${response.statusText}`);
+        throw new Error(SERVER_ERROR_MESSAGE);
       }
       
       return response.json();
@@ -34,7 +35,7 @@ export const playerApi = {
       body: JSON.stringify({ name }),
     });
     if (!response.ok) {
-      throw new Error(`Failed to create player: ${response.statusText}`);
+      throw new Error(SERVER_ERROR_MESSAGE);
     }
     return response.json();
   },
@@ -45,7 +46,7 @@ export const playerApi = {
       method: 'DELETE',
     });
     if (!response.ok) {
-      throw new Error(`Failed to delete player: ${response.statusText}`);
+      throw new Error(SERVER_ERROR_MESSAGE);
     }
     return true;
   },
@@ -57,7 +58,7 @@ export const gameApi = {
   getAll: async () => {
     const response = await fetch(`${API_BASE_URL}/games`);
     if (!response.ok) {
-      throw new Error(`Failed to fetch games: ${response.statusText}`);
+      throw new Error(SERVER_ERROR_MESSAGE);
     }
     return response.json();
   },
@@ -66,7 +67,7 @@ export const gameApi = {
   getById: async (id: number) => {
     const response = await fetch(`${API_BASE_URL}/games/${id}`);
     if (!response.ok) {
-      throw new Error(`Failed to fetch game: ${response.statusText}`);
+      throw new Error(SERVER_ERROR_MESSAGE);
     }
     return response.json();
   },
@@ -77,7 +78,7 @@ export const gameApi = {
       method: 'POST',
     });
     if (!response.ok) {
-      throw new Error(`Failed to create game: ${response.statusText}`);
+      throw new Error(SERVER_ERROR_MESSAGE);
     }
     return response.json();
   },
@@ -92,7 +93,7 @@ export const gameApi = {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      throw new Error(`Failed to update game: ${response.statusText}`);
+      throw new Error(SERVER_ERROR_MESSAGE);
     }
     return response.json();
   },
@@ -103,7 +104,7 @@ export const gameApi = {
       method: 'POST',
     });
     if (!response.ok) {
-      throw new Error(`Failed to add player to game: ${response.statusText}`);
+      throw new Error(SERVER_ERROR_MESSAGE);
     }
     return response.json();
   },
@@ -126,7 +127,7 @@ export const gameApi = {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      throw new Error(`Failed to update score: ${response.statusText}`);
+      throw new Error(SERVER_ERROR_MESSAGE);
     }
     return response.json();
   },
