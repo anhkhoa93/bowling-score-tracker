@@ -20,7 +20,7 @@ else
 fi
 
 echo "Stopping any running containers..."
-docker compose down
+docker-compose down
 
 echo "Building and starting containers in $NODE_ENV mode..."
-docker compose up --build
+docker-compose up --build
