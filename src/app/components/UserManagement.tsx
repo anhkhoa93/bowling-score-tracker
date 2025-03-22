@@ -5,10 +5,11 @@ import { useState } from 'react';
 interface UserManagementProps {
   users: string[];
   setUsers: (users: string[]) => void;
-  onStartGame: () => void; // Callback to start the game
+  setError: (error: string | null) => void;
+  onStartGame: () => void; 
 }
 
-export default function UserManagement({ users, setUsers, onStartGame }: UserManagementProps) {
+export default function UserManagement({ users, setUsers, setError, onStartGame }: UserManagementProps) {
   const [newUser, setNewUser] = useState('');
 
   const addUser = () => {
@@ -52,10 +53,12 @@ export default function UserManagement({ users, setUsers, onStartGame }: UserMan
             value={newUser}
             onChange={(e) => setNewUser(e.target.value)}
             className="flex-1 p-3 border border-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            data-testid="username-input"
           />
-          <button data-testid="add-user-button"
+          <button
             onClick={addUser}
             className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            data-testid="add-user-button"
           >
             Add User
           </button>
@@ -63,8 +66,15 @@ export default function UserManagement({ users, setUsers, onStartGame }: UserMan
       )}
 
       <button
-        onClick={onStartGame}
+        onClick={() => {
+          if (users.length === 0) {
+            setError("Please add at least one user to start the game.");
+            return;
+          }
+          onStartGame();
+        }}
         className="w-full bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 mt-6"
+        data-testid="start-game-button"
       >
         Start Game
       </button>

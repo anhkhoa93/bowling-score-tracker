@@ -183,3 +183,74 @@ http://3.237.51.27:3000/
 - If the player input the point already, they cannot make change to the score array. So there is 2 approachs:
   - Store each score using sever component, and check the server record each time new score is set
   - Client side render only, but hash the last state of score array, and add new score, then rehashing the structure to make sure each change is immutable (blockchain approach)
+
+---
+
+## Recent Optimizations and Improvements
+
+### Performance Optimizations
+- Implemented dynamic imports with loading states for better code splitting and improved initial load time
+- Added memoization for components and event handlers to prevent unnecessary re-renders
+- Enabled SWC minification for improved production build performance
+- Implemented React strict mode for better development practices
+- Added compiler option to remove console logs in production
+
+### Component Enhancements
+- Created a dedicated ErrorDialog component for better error handling
+- Refactored ScoreTracker component for better state management and performance
+- Improved WinnerAnnouncement component with proper z-index and pointer events handling
+- Enhanced UI with responsive design and better loading states
+
+### Testing Improvements
+- Added data-testid attributes for more reliable test targeting
+- Improved Cypress test reliability by adjusting component interactions
+
+### Code Quality
+- Fixed lint errors throughout the codebase
+- Improved type definitions for better TypeScript support
+- Enhanced component props interfaces for better code maintainability
+- Implemented proper error handling and user feedback mechanisms
+- Created reusable CSS module system for consistent styling across components
+
+These optimizations have resulted in a more performant, maintainable, and reliable application with improved user experience and developer workflow.
+
+## CSS Module System
+
+The application now uses a CSS module system for better organization and reusability of styles. This approach provides several benefits:
+
+- **Scoped Styles**: CSS classes are locally scoped to components, preventing style conflicts
+- **Reusable Components**: Common styles are defined once and reused across components
+- **Better Maintainability**: Centralized style definitions make updates easier and more consistent
+- **Type Safety**: CSS modules provide better TypeScript integration with class name autocompletion
+
+### How to Use
+
+1. Import the shared styles in your component:
+   ```tsx
+   import styles from '../styles/shared.module.css';
+   ```
+
+2. Apply the styles to your elements:
+   ```tsx
+   <div className={styles.container}>
+     <h1 className={styles.title}>My Component</h1>
+     <button className={styles.btnPrimary}>Click Me</button>
+   </div>
+   ```
+
+3. Combine with Tailwind classes when needed:
+   ```tsx
+   <div className={`${styles.card} p-4 mt-2`}>
+     Content
+   </div>
+   ```
+
+The shared styles are organized into logical categories:
+- Layout classes (container, card, flex layouts)
+- Typography (title, subtitle, text styles)
+- Buttons with variants (primary, success, danger, secondary)
+- Form elements (inputs, lists)
+- Game-specific elements (frames, score displays)
+- Responsive utilities
+- Animation utilities
+- Dialog/modal styles
