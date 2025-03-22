@@ -7,6 +7,8 @@ COPY package.json ./
 
 RUN npm install
 RUN npm install -D @swc/cli @swc/core @swc/jest
+RUN npm install dotenv pg @types/pg
+
 COPY . .
 
 # Set environment variables
