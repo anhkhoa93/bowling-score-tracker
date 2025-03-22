@@ -180,8 +180,6 @@ http://3.237.51.27:3000/
 ![image info](./resource/prod.png)
 
 
-
-
 ---
 
 ## Recent Optimizations and Improvements
@@ -310,3 +308,22 @@ The script will:
 3. Start all containers defined in docker-compose.yml
 
 This provides a consistent way to run the application across different operating systems while ensuring the correct environment variables are set.
+
+
+### Production deploy with HTTPS and ALB:
+```
+https://www.khoa-huynh-project.id.vn/
+
+```
+
+## Production Deployment Evidence
+
+### SSL Certificate
+The application is secured with a valid SSL certificate:
+
+![SSL Certificate](./resource/CA.png)
+
+### Production Environment
+The application is running in production with all optimizations enabled:
+
+![Production Environment](./resource/production.png)
