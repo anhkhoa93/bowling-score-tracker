@@ -1,0 +1,25 @@
+{
+  "name": "bowling-score-tracker-server",
+  "version": "1.0.0",
+  "description": "Fastify server for bowling score tracker application",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node copy-schema.js",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "test": "jest",
+    "init-db": "node init-db.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.3.0",
+    "fastify": "^4.19.0",
+    "pg": "^8.11.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.1",
+    "@types/pg": "^8.10.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.1.3"
+  }
+}

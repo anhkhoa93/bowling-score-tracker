@@ -1,2 +1,8 @@
 import '@testing-library/jest-dom'
-// The extend-expect import is no longer needed as it's included in the main package
+
+// Extend Jest's expect
+import { expect } from '@jest/globals'
+import matchers from '@testing-library/jest-dom/matchers'
+
+// Add the custom matchers
+expect.extend(matchers)

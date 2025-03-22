@@ -24,6 +24,8 @@ For detail rule of Bowling game, please go to: https://youtu.be/E2d8PizMe-8?si=2
 - **Docker**: For application bundle and deployment
 - **AWS ECS**: Production deployment for scaling, granular control of the application and security.
 - **Github Actions**: CICD for faster development process.
+- **Fastify**: Backend server for storing bowling scores in PostgreSQL
+- **PostgreSQL**: Database for storing game history and player records
 
 ---
 
@@ -212,45 +214,14 @@ http://3.237.51.27:3000/
 - Implemented proper error handling and user feedback mechanisms
 - Created reusable CSS module system for consistent styling across components
 
-These optimizations have resulted in a more performant, maintainable, and reliable application with improved user experience and developer workflow.
+### Backend Server
+- Implemented a Fastify server to store bowling scores in PostgreSQL
+- Created RESTful API endpoints for players, games, and scores
+- Designed a normalized database schema with proper relationships
+- Added data persistence for game history and player records
 
-## CSS Module System
-
-The application now uses a CSS module system for better organization and reusability of styles. This approach provides several benefits:
-
-- **Scoped Styles**: CSS classes are locally scoped to components, preventing style conflicts
-- **Reusable Components**: Common styles are defined once and reused across components
-- **Better Maintainability**: Centralized style definitions make updates easier and more consistent
-- **Type Safety**: CSS modules provide better TypeScript integration with class name autocompletion
-
-### How to Use
-
-1. Import the shared styles in your component:
-   ```tsx
-   import styles from '../styles/shared.module.css';
-   ```
-
-2. Apply the styles to your elements:
-   ```tsx
-   <div className={styles.container}>
-     <h1 className={styles.title}>My Component</h1>
-     <button className={styles.btnPrimary}>Click Me</button>
-   </div>
-   ```
-
-3. Combine with Tailwind classes when needed:
-   ```tsx
-   <div className={`${styles.card} p-4 mt-2`}>
-     Content
-   </div>
-   ```
-
-The shared styles are organized into logical categories:
-- Layout classes (container, card, flex layouts)
-- Typography (title, subtitle, text styles)
-- Buttons with variants (primary, success, danger, secondary)
-- Form elements (inputs, lists)
-- Game-specific elements (frames, score displays)
-- Responsive utilities
-- Animation utilities
-- Dialog/modal styles
+### Database Integration
+- PostgreSQL database with tables for players, games, and game scores
+- Proper indexing for optimized query performance
+- Transaction support for data integrity
+- API service for client-server communication
